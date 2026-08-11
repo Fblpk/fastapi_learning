@@ -23,7 +23,7 @@ def find_product(id: int, db: Session):
     )
 
 @router.post('/', response_model=ProductResponse)
-def create_product(product: ProductCreate, db: Session = Depends(get_db)):
+async def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     new_product = Product(
         name=product.name,
         price=product.price,
@@ -38,7 +38,7 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
 
 
 @router.put('/{id}', response_model=ProductResponse)
-def update_product(id: int, product: ProductCreate, db: Session = Depends(get_db)):
+async def update_product(id: int, product: ProductCreate, db: Session = Depends(get_db)):
     product_to_update = find_product(id, db)
 
     product_to_update.name = product.name
@@ -52,22 +52,22 @@ def update_product(id: int, product: ProductCreate, db: Session = Depends(get_db
 
 
 @router.delete('/{id}')
-def delete_product(id: int, db: Session = Depends(get_db)):
+async def delete_product(id: int, db: Session = Depends(get_db)):
     product_to_delete = find_product(id, db)
 
     db.delete(product_to_delete)
     db.commit()
 
-    return {'deleted': product_to_delete}
+    return {'deleted': True, 'id': id}
 
 
 
 @router.get('/{id}', response_model=ProductResponse)
-def get_product(id: int, db: Session = Depends(get_db)):
+async def get_product(id: int, db: Session = Depends(get_db)):
     return find_product(id, db)
 
 
 
 @router.get('/', response_model=List[ProductResponse])
-def get_all_products(db: Session = Depends(get_db)):
+async def get_all_products(db: Session = Depends(get_db)):
     return db.query(Product).all()
