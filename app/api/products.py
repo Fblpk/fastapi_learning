@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductResponse
+from app.core.security import get_current_user
+from app.models.user import User
 
 
 
@@ -23,7 +25,12 @@ def find_product(id: int, db: Session):
     )
 
 @router.post('/', response_model=ProductResponse)
-async def create_product(product: ProductCreate, db: Session = Depends(get_db)):
+async def create_product(
+        product: ProductCreate,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+
     new_product = Product(
         name=product.name,
         price=product.price,
@@ -38,7 +45,12 @@ async def create_product(product: ProductCreate, db: Session = Depends(get_db)):
 
 
 @router.put('/{id}', response_model=ProductResponse)
-async def update_product(id: int, product: ProductCreate, db: Session = Depends(get_db)):
+async def update_product(
+        id: int, product: ProductCreate,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+
     product_to_update = find_product(id, db)
 
     product_to_update.name = product.name
@@ -52,7 +64,11 @@ async def update_product(id: int, product: ProductCreate, db: Session = Depends(
 
 
 @router.delete('/{id}')
-async def delete_product(id: int, db: Session = Depends(get_db)):
+async def delete_product(
+        id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
     product_to_delete = find_product(id, db)
 
     db.delete(product_to_delete)
