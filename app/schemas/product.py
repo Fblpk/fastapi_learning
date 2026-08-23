@@ -12,6 +12,7 @@ class ProductResponse(BaseModel):
     name: str
     price: float
     quantity: int
+    owner_id: int | None = None
 
     class Config:
         from_attributes = True
