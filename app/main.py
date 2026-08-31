@@ -5,7 +5,7 @@ from app.api.orders import router as orders_router
 
 app = FastAPI(title="My E-Commerce API")
 
-# Подключаем роутер товаров к главному приложению
+
 app.include_router(products_router)
 app.include_router(auth_router)
 app.include_router(orders_router)
