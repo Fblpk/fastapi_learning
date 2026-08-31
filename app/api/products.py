@@ -25,7 +25,7 @@ def find_product(id: int, db: Session):
     )
 
 @router.post('/', response_model=ProductResponse)
-async def create_product(
+def create_product(
         product: ProductCreate,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
@@ -47,7 +47,7 @@ async def create_product(
 
 
 @router.put('/{id}', response_model=ProductResponse)
-async def update_product(
+def update_product(
         id: int, product: ProductCreate,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
@@ -66,7 +66,7 @@ async def update_product(
 
 
 @router.delete('/{id}')
-async def delete_product(
+def delete_product(
         id: int,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
@@ -81,11 +81,27 @@ async def delete_product(
 
 
 @router.get('/{id}', response_model=ProductResponse)
-async def get_product(id: int, db: Session = Depends(get_db)):
+def get_product(id: int, db: Session = Depends(get_db)):
     return find_product(id, db)
 
 
 
 @router.get('/', response_model=List[ProductResponse])
-async def get_all_products(db: Session = Depends(get_db)):
-    return db.query(Product).all()
+def get_all_products(
+        limit: int = 10,
+        offset: int = 0,
+        search: str | None = None,
+        min_price: float | None = None,
+        max_price: float | None = None,
+        db: Session = Depends(get_db)
+):
+    query = db.query(Product)
+
+    if search:
+        query = query.filter(Product.name.contains(search))
+    if min_price is not None:
+        query = query.filter(Product.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Product.price <= max_price)
+
+    return query.limit(limit).offset(offset).all()
