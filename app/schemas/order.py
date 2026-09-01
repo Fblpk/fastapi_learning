@@ -1,10 +1,10 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 
 class OrderItemCreate(BaseModel):
-    product_id: int
-    quantity: int
+    product_id: int = Field(gt=0)
+    quantity: int = Field(gt=0)
 
 
 class OrderCreate(BaseModel):
