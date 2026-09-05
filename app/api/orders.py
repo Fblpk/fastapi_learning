@@ -30,6 +30,12 @@ def create_order(
                 detail='Product not found'
             )
 
+        if item.quantity > product.quantity:
+            raise HTTPException(
+                status_code=400,
+                detail=f'Not enough stock for product {item.product_id}. Available: {product.quantity}'
+            )
+
         total += (item.quantity * product.price)
         order_items.append(OrderItem(
             product_id = item.product_id,
