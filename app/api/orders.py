@@ -36,6 +36,7 @@ def create_order(
                 detail=f'Not enough stock for product {item.product_id}. Available: {product.quantity}'
             )
 
+        product.quantity -= item.quantity
         total += (item.quantity * product.price)
         order_items.append(OrderItem(
             product_id = item.product_id,
@@ -91,3 +92,35 @@ def get_order_by_id(
         )
 
     return order
+
+
+@router.delete('/{id}')
+def delete_order(
+        id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    order = db.query(Order).filter(Order.id == id).first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail='Order not found'
+        )
+
+    if order.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail='Forbidden'
+        )
+
+    for item in order.items:
+        product = db.query(Product).filter(Product.id == item.product_id).first()
+
+        if product:
+            product.quantity += item.quantity
+
+    db.delete(order)
+    db.commit()
+
+    return {'deleted': True, 'id': id}
