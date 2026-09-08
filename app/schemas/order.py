@@ -8,7 +8,7 @@ class OrderItemCreate(BaseModel):
 
 
 class OrderCreate(BaseModel):
-    items: list[OrderItemCreate]
+    items: list[OrderItemCreate] = Field(min_length=1)
 
 
 class OrderItemResponse(BaseModel):

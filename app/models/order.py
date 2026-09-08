@@ -11,7 +11,7 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     total_price = Column(Numeric(precision=10, scale=2))
 
-    user = relationship('User', back_populates='order')
+    user = relationship('User', back_populates='orders')
     items = relationship("OrderItem", back_populates="order")
 
 class OrderItem(Base):

@@ -9,4 +9,4 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
 
-    order = relationship('Order', back_populates='user')
+    orders = relationship('Order', back_populates='user')

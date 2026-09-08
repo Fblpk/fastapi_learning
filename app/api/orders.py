@@ -48,15 +48,11 @@ def create_order(
         user_id=current_user.id,
         total_price = total
     )
+    new_order.items = order_items
 
     db.add(new_order)
     db.commit()
     db.refresh(new_order)
-
-    for item in order_items:
-        item.order_id = new_order.id
-        db.add(item)
-    db.commit()
 
     return new_order
 

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import os
 import bcrypt
 import jwt
 
@@ -10,7 +11,7 @@ from app.core.database import get_db
 from app.models.user import User
 
 
-SECRET_KEY = "change-me-to-something-long-and-random"
+SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-to-something-long-and-random')
 
 ALGORITHM = "HS256"
 

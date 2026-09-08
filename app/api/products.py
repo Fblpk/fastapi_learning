@@ -55,6 +55,12 @@ def update_product(
 
     product_to_update = find_product(id, db)
 
+    if product_to_update.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail='Forbidden'
+        )
+
     product_to_update.name = product.name
     product_to_update.price = product.price
     product_to_update.quantity = product.quantity
@@ -72,6 +78,12 @@ def delete_product(
         current_user: User = Depends(get_current_user)
 ):
     product_to_delete = find_product(id, db)
+
+    if product_to_delete.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail='Forbidden'
+        )
 
     db.delete(product_to_delete)
     db.commit()
