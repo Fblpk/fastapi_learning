@@ -1,7 +1,7 @@
-
-from sqlalchemy import Column, Integer, Numeric, ForeignKey
+from sqlalchemy import Column, Integer, Numeric, ForeignKey, Enum as SQLEnum
 from app.core.database import Base
 from sqlalchemy.orm import relationship
+from app.core.enums import OrderStatus
 
 
 class Order(Base):
@@ -10,6 +10,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     total_price = Column(Numeric(precision=10, scale=2))
+    status = Column(SQLEnum(OrderStatus), default=OrderStatus.PENDING)
 
     user = relationship('User', back_populates='orders')
     items = relationship("OrderItem", back_populates="order")

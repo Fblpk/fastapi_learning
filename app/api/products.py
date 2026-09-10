@@ -1,28 +1,17 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductResponse
 from app.core.security import get_current_user
 from app.models.user import User
+from app.services import products_service as service
 
 
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
-
-def find_product(id: int, db: Session):
-    product = db.query(Product).filter(Product.id == id).first()
-
-    if product:
-        return product
-
-    raise HTTPException(
-        status_code=404,
-        detail="Product not found"
-    )
 
 @router.post('/', response_model=ProductResponse)
 def create_product(
@@ -30,45 +19,17 @@ def create_product(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-
-    new_product = Product(
-        name=product.name,
-        price=product.price,
-        quantity=product.quantity,
-        owner_id=current_user.id
-    )
-
-
-    db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
-
-    return new_product
+    return service.create_product(product, db, current_user)
 
 
 @router.put('/{id}', response_model=ProductResponse)
 def update_product(
-        id: int, product: ProductCreate,
+        id: int,
+        product: ProductCreate,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-
-    product_to_update = find_product(id, db)
-
-    if product_to_update.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=403,
-            detail='Forbidden'
-        )
-
-    product_to_update.name = product.name
-    product_to_update.price = product.price
-    product_to_update.quantity = product.quantity
-
-    db.commit()
-    db.refresh(product_to_update)
-
-    return product_to_update
+    return service.update_product(id, product, db, current_user)
 
 
 @router.delete('/{id}')
@@ -77,25 +38,15 @@ def delete_product(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    product_to_delete = find_product(id, db)
-
-    if product_to_delete.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=403,
-            detail='Forbidden'
-        )
-
-    db.delete(product_to_delete)
-    db.commit()
-
-    return {'deleted': True, 'id': id}
-
+   return service.delete_product(id, db, current_user)
 
 
 @router.get('/{id}', response_model=ProductResponse)
-def get_product(id: int, db: Session = Depends(get_db)):
-    return find_product(id, db)
-
+def get_product(
+        id: int,
+        db: Session = Depends(get_db)
+):
+    return service.get_product(id, db)
 
 
 @router.get('/', response_model=List[ProductResponse])
@@ -107,13 +58,4 @@ def get_all_products(
         max_price: float | None = None,
         db: Session = Depends(get_db)
 ):
-    query = db.query(Product)
-
-    if search:
-        query = query.filter(Product.name.contains(search))
-    if min_price is not None:
-        query = query.filter(Product.price >= min_price)
-    if max_price is not None:
-        query = query.filter(Product.price <= max_price)
-
-    return query.limit(limit).offset(offset).all()
+    return service.get_all_products(db, limit, offset, search, min_price, max_price)

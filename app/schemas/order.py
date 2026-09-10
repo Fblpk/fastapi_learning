@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field
+from app.core.enums import OrderStatus
 
 
 
@@ -26,3 +27,7 @@ class OrderResponse(BaseModel):
     items: list[OrderItemResponse]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OrderStatusUpdate(BaseModel):
+    status: OrderStatus
