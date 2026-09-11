@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Numeric, ForeignKey
 from app.core.database import Base
 from sqlalchemy.orm import relationship
 
@@ -8,7 +8,7 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    price = Column(Float)
+    price = Column(Numeric)
     quantity = Column(Integer)
     owner_id = Column(Integer, ForeignKey("users.id"))
 

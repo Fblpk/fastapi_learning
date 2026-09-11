@@ -20,8 +20,7 @@ def changed_order_status(order: Order, data_status: OrderStatus):
             OrderStatus.CANCELED
         },
         OrderStatus.SHIPPED: {
-            OrderStatus.COMPLETED,
-            OrderStatus.CANCELED
+            OrderStatus.COMPLETED
         },
     }
 
@@ -73,15 +72,12 @@ def create_order(
 
         return new_order
 
-    except HTTPException:
-        db.rollback()
-        raise
-
     except OperationalError:
         db.rollback()
         raise HTTPException(
             status_code=409,
-            detail="The item is currently being processed by another user. Please try again.")
+            detail="The item is currently being processed by another user. Please try again."
+        )
 
     except Exception:
         db.rollback()
@@ -107,21 +103,30 @@ def get_order_by_id(id: int, db: Session, current_user: User):
 
 
 def cancel_order(id: int, db: Session, current_user: User):
-    order = db.query(Order).filter(Order.id == id).first()
+    try:
+        order = db.query(Order).filter(Order.id == id).first()
 
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
 
-    if order.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Forbidden")
+        if order.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Forbidden")
 
-    for item in order.items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        for item in order.items:
+            product = db.query(Product).filter(Product.id == item.product_id).first()
 
-        if product:
-            product.quantity += item.quantity
+            if product:
+                product.quantity += item.quantity
 
-    changed_order_status(order, OrderStatus.CANCELED)
-    db.commit()
+        changed_order_status(order, OrderStatus.CANCELED)
+        db.commit()
 
-    return {"canceled": True, "id": id}
+        return {"canceled": True, "id": id}
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except Exception:
+        db.rollback()
+        raise

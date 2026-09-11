@@ -33,7 +33,6 @@ def create_product(product: ProductCreate, db: Session, current_user: User):
 
 
 def update_product(id: int, product: ProductCreate, db: Session, current_user: User):
-
     product_to_update = find_product(id, db)
 
     if product_to_update.owner_id != current_user.id:
