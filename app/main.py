@@ -10,6 +10,7 @@ app.include_router(products_router)
 app.include_router(auth_router)
 app.include_router(orders_router)
 
-@app.get('/')
+
+@app.get("/")
 def home():
-    return {'message': 'Магазин работает'}
+    return {"message": "Магазин работает"}

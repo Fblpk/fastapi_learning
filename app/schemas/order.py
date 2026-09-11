@@ -2,7 +2,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.core.enums import OrderStatus
 
 
-
 class OrderItemCreate(BaseModel):
     product_id: int = Field(gt=0)
     quantity: int = Field(gt=0)
