@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.database import get_db_async
 from app.schemas.order import OrderCreate, OrderResponse
 from app.core.security import get_current_user
 from app.models.user import User
@@ -11,34 +11,35 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 @router.post("/", response_model=OrderResponse)
-def create_order(
+async def create_order(
     order: OrderCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db_async),
     current_user: User = Depends(get_current_user),
 ):
-    return service.create_order(order, db, current_user)
+    return await service.create_order(order, db, current_user)
 
 
 @router.get("/", response_model=list[OrderResponse])
-def get_user_orders(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+async def get_user_orders(
+    db: AsyncSession = Depends(get_db_async),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.get_user_orders(db, current_user)
+    return await service.get_user_orders(db, current_user)
 
 
 @router.get("/{id}", response_model=OrderResponse)
-def get_order_by_id(
+async def get_order_by_id(
     id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db_async),
     current_user: User = Depends(get_current_user),
 ):
-    return service.get_order_by_id(id, db, current_user)
+    return await service.get_order_by_id(id, db, current_user)
 
 
 @router.post("/{id}")
-def cancel_order(
+async def cancel_order(
     id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db_async),
     current_user: User = Depends(get_current_user),
 ):
-    return service.cancel_order(id, db, current_user)
+    return await service.cancel_order(id, db, current_user)
