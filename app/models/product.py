@@ -12,4 +12,4 @@ class Product(Base):
     quantity = Column(Integer)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
-    order_items = relationship("OrderItem")
+    order_items = relationship("OrderItem", back_populates="product")

@@ -9,3 +9,4 @@ pyjwt==2.13.0
 python-dotenv==1.2.2
 asyncpg==0.31.0
 psycopg[binary]==3.3.5
+pytest
