@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-import os
 import bcrypt
 import jwt
 
@@ -10,8 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models.user import User
+from app.core.config import settings
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "change-me-to-something-long-and-random")
+
+SECRET_KEY = settings.SECRET_KEY
 
 ALGORITHM = "HS256"
 

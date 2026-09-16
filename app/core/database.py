@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
+from app.core.config import settings
 
-ASYNC_DATABASE_URL = "postgresql+asyncpg://fastapi:fastapi_dev@localhost:5432/fastapi_learning"
+ASYNC_DATABASE_URL = settings.ASYNC_DATABASE_URL
 
 async_engine = create_async_engine(ASYNC_DATABASE_URL)
 
