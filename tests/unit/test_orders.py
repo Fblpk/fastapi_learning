@@ -5,6 +5,7 @@ from app.core.enums import OrderStatus
 from app.services import orders_service as service
 from app.models.order import Order
 
+
 @pytest.mark.parametrize(
     'current, new, should_fail',
     [
@@ -57,8 +58,3 @@ def test_cannot_change_status_from_terminal(terminal_status, any_status):
 
     assert exc_info.value.status_code == 400
     assert exc_info.value.detail == f"Order status: {order.status} not allowed"
-
-
-
-
-
