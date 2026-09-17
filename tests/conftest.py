@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from httpx import ASGITransport, AsyncClient
 from decimal import Decimal
@@ -23,6 +24,16 @@ async def test_engine():
 async def db(test_engine):
     TestSessionLocal = async_sessionmaker(bind=test_engine, expire_on_commit=False)
     async with TestSessionLocal() as session:
+        await session.execute(text("""
+        TRUNCATE TABLE
+            order_items,
+            orders,
+            products,
+            users
+        RESTART IDENTITY CASCADE
+        """))
+        await session.commit()
+
         yield session
 
 
@@ -42,7 +53,37 @@ async def client(db):
 
 @pytest.fixture
 async def user(db):
-    async def _user(**kwargs):
+    user = User(
+        username="Bob",
+        hashed_password=hash_password('password'),
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    return user
+
+
+@pytest.fixture
+async def product(db, user):
+
+    product = Product(
+        name="Product 1",
+        price=Decimal(100.0),
+        quantity=5,
+        owner_id=user.id
+    )
+
+    db.add(product)
+    await db.commit()
+
+    await db.refresh(product)
+    return product
+
+
+@pytest.fixture
+async def user_fabric(db):
+    async def _user_fabric(**kwargs):
         defaults = {'username': 'Johnny_test', 'password': 'password'}
 
         defaults.update(kwargs)
@@ -57,39 +98,4 @@ async def user(db):
         await db.refresh(user)
         return user
 
-    return _user
-
-
-@pytest.fixture
-async def products(db, user):
-    owner = await user()
-
-    p1 = Product(
-        name="Product 1",
-        price=Decimal(100.0),
-        quantity=5,
-        owner_id=owner.id
-    )
-
-    p2 = Product(
-        name="Product 2",
-        price=Decimal(200.0),
-        quantity=10,
-        owner_id=owner.id
-    )
-
-    p3 = Product(
-        name="Product 3",
-        price=Decimal(300.0),
-        quantity=15,
-        owner_id=owner.id
-    )
-
-    db.add_all([p1, p2, p3])
-    await db.commit()
-
-    await db.refresh(p1)
-    await db.refresh(p2)
-    await db.refresh(p3)
-
-    return [p1, p2, p3]
+    return _user_fabric
