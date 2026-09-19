@@ -12,7 +12,7 @@ from app.models.user import User
 from app.models.product import Product
 from app.core.security import hash_password
 from app.core.enums import OrderStatus
-from app.models.order import Order
+from app.models.order import Order, OrderItem
 
 
 @pytest.fixture(scope="session")
@@ -126,11 +126,18 @@ async def product_factory(db, user):
 
 
 @pytest.fixture
-async def order(db, user):
+async def order(db, user, product):
     order = Order(
         user_id=user.id,
-        total_price=Decimal(100.0),
-        status=OrderStatus.PENDING
+        total_price=Decimal(product.price *2),
+        status=OrderStatus.PENDING,
+        items=[
+            OrderItem(
+                product_id=product.id,
+                quantity=2,
+                price_at_order=product.price
+            )
+        ]
     )
 
     db.add(order)

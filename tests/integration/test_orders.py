@@ -4,11 +4,11 @@ from sqlalchemy import text
 
 from app.schemas.order import OrderCreate, OrderItemCreate
 from app.services import orders_service as service
-
+from app.core.enums import OrderStatus
 
 
 async def test_create_order(db, user, product):
-    """Успешный сценарий: заказ создан, цена и количество сходятся, сток списан"""
+    """Заказ создан, цена и количество сходятся, сток списан"""
     order_data = OrderCreate(
         items=[
             OrderItemCreate(
@@ -90,9 +90,59 @@ async def test_create_order_not_enough_quantity(db, user, product_factory):
 
 
 async def test_get_user_order(db, user, order):
-    """Положительный сценарий: получаем список заказов юзера"""
+    """Получаем список заказов юзера"""
     user_orders = await service.get_user_orders(db, user)
 
     assert len(user_orders) == 1
     assert order in user_orders
 
+
+async def test_get_user_order_no_orders(db, user):
+    """Нет заказов у юзера. Возвращаем пустой список"""
+    user_orders = await service.get_user_orders(db, user)
+
+    assert user_orders == []
+
+
+async def test_get_order_by_id(db, user, order):
+    """Получаем заказ по ID"""
+    order_by_id = await service.get_order_by_id(order.id, db, user)
+
+    assert order_by_id == order
+
+
+async def test_get_order_by_id_not_found(db, user):
+    """Заказ не найден: 404"""
+    with pytest.raises(HTTPException) as exc_info:
+        await service.get_order_by_id(999, db, user)
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "Order not found"
+
+
+async def test_get_order_by_id_another_user(db, user_factory, order):
+    """Заказ существует и принадлежит другому пользователю: 404"""
+    another_user = await user_factory()
+    with pytest.raises(HTTPException) as exc_info:
+        await service.get_order_by_id(order.id, db, another_user)
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "Order not found"
+
+
+async def test_cancel_order(db, user, order, product):
+    """Заказ отменён: сток возвращается, статус: CANCELED"""
+    initial_quantity = product.quantity
+    cancelled_order = await service.cancel_order(order.id, db, user)
+
+    assert order.status == OrderStatus.CANCELED
+    assert product.quantity == initial_quantity + order.items[0].quantity
+
+
+async def test_cancel_order_not_found(db, user):
+    """Заказ для отмены не найден: 404"""
+    with pytest.raises(HTTPException) as exc_info:
+        await service.cancel_order(999, db, user)
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "Order not found"
