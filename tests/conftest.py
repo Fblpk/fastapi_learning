@@ -4,13 +4,15 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from httpx import ASGITransport, AsyncClient
 from decimal import Decimal
 
+
 from app.core.config import settings
 from app.core.database import get_db
 from app.main import app
 from app.models.user import User
 from app.models.product import Product
 from app.core.security import hash_password
-
+from app.core.enums import OrderStatus
+from app.models.order import Order
 
 
 @pytest.fixture(scope="session")
@@ -82,8 +84,8 @@ async def product(db, user):
 
 
 @pytest.fixture
-async def user_fabric(db):
-    async def _user_fabric(**kwargs):
+async def user_factory(db):
+    async def _user_factory(**kwargs):
         defaults = {'username': 'Johnny_test', 'password': 'password'}
 
         defaults.update(kwargs)
@@ -98,4 +100,41 @@ async def user_fabric(db):
         await db.refresh(user)
         return user
 
-    return _user_fabric
+    return _user_factory
+
+
+@pytest.fixture
+async def product_factory(db, user):
+    async def _product_factory(**kwargs):
+        defaults = {
+            'name': 'test_product',
+            'price': Decimal(100.0),
+            'quantity': 5,
+            'owner_id': user.id
+        }
+
+        defaults.update(kwargs)
+
+        product = Product(**defaults)
+
+        db.add(product)
+        await db.commit()
+        await db.refresh(product)
+        return product
+
+    return _product_factory
+
+
+@pytest.fixture
+async def order(db, user):
+    order = Order(
+        user_id=user.id,
+        total_price=Decimal(100.0),
+        status=OrderStatus.PENDING
+    )
+
+    db.add(order)
+    await db.commit()
+    await db.refresh(order)
+
+    return order

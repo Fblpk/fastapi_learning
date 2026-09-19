@@ -84,6 +84,10 @@ async def create_order(
             detail="The item is currently being processed by another user. Please try again."
         )
 
+    except HTTPException:
+        await db.rollback()
+        raise
+
 
 async def get_user_orders(db: AsyncSession, current_user: User):
     stmt = select(Order).filter(Order.user_id == current_user.id).options(selectinload(Order.items))
