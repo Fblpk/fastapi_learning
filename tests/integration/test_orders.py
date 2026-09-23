@@ -133,7 +133,7 @@ async def test_get_order_by_id_another_user(db, user_factory, order):
 async def test_cancel_order(db, user, order, product):
     """Заказ отменён: сток возвращается, статус: CANCELED"""
     initial_quantity = product.quantity
-    cancelled_order = await service.cancel_order(order.id, db, user)
+    await service.cancel_order(order.id, db, user)
 
     assert order.status == OrderStatus.CANCELED
     assert product.quantity == initial_quantity + order.items[0].quantity
