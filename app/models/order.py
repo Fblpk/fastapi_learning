@@ -1,29 +1,42 @@
-from sqlalchemy import Column, Integer, Numeric, ForeignKey, Enum as SQLEnum
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, Numeric
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.core.database import Base
-from sqlalchemy.orm import relationship
 from app.core.enums import OrderStatus
+
+if TYPE_CHECKING:
+    from app.models.product import Product
+    from app.models.user import User
 
 
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    total_price = Column(Numeric(precision=10, scale=2))
-    status = Column(SQLEnum(OrderStatus), default=OrderStatus.PENDING)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    total_price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
+    status: Mapped[OrderStatus] = mapped_column(
+        SQLEnum(OrderStatus), default=OrderStatus.PENDING
+    )
 
-    user = relationship("User", back_populates="orders")
-    items = relationship("OrderItem", back_populates="order")
+    user: Mapped["User"] = relationship(back_populates="orders")
+    items: Mapped[list["OrderItem"]] = relationship(back_populates="order")
 
 
 class OrderItem(Base):
     __tablename__ = "order_items"
 
-    id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.id"))
-    product_id = Column(Integer, ForeignKey("products.id"))
-    quantity = Column(Integer)
-    price_at_order = Column(Numeric(precision=10, scale=2))
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    quantity: Mapped[int]
+    price_at_order: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
 
-    order = relationship("Order", back_populates="items")
-    product = relationship("Product", back_populates="order_items")
+    order: Mapped["Order"] = relationship(back_populates="items")
+    product: Mapped["Product"] = relationship(back_populates="order_items")

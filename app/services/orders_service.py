@@ -53,19 +53,19 @@ async def create_order(
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
 
-            if item.quantity > product.quantity: #type: ignore
+            if item.quantity > product.quantity:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Not enough stock for product {item.product_id}. Available: {product.quantity}", #type: ignore
+                    detail=f"Not enough stock for product {item.product_id}. Available: {product.quantity}",
                 )
 
-            product.quantity -= item.quantity #type: ignore
-            total += item.quantity * product.price #type: ignore
+            product.quantity -= item.quantity
+            total += item.quantity * product.price
             order_items.append(
                 OrderItem(
                     product_id=item.product_id,
                     quantity=item.quantity,
-                    price_at_order=product.price, #type: ignore
+                    price_at_order=product.price,
                 )
             )
 
@@ -115,13 +115,13 @@ async def cancel_order(id: int, db: AsyncSession, current_user: User):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    for item in order.items: #type: ignore
+    for item in order.items:
         product_stmt = select(Product).filter(Product.id == item.product_id)
         product = (await db.execute(product_stmt)).scalars().first()
 
 
         if product:
-            product.quantity += item.quantity #type: ignore
+            product.quantity += item.quantity
 
     changed_order_status(order, OrderStatus.CANCELED)
     await db.commit()

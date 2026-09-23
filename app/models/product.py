@@ -1,15 +1,24 @@
-from sqlalchemy import Column, Integer, String, Numeric, ForeignKey
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import TYPE_CHECKING
+
+from sqlalchemy import ForeignKey, Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.core.database import Base
-from sqlalchemy.orm import relationship
+
+if TYPE_CHECKING:
+    from app.models.order import OrderItem
 
 
 class Product(Base):
     __tablename__ = "products"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    price = Column(Numeric)
-    quantity = Column(Integer)
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String)
+    price: Mapped[Decimal] = mapped_column(Numeric)
+    quantity: Mapped[int]
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
-    order_items = relationship("OrderItem", back_populates="product")
+    order_items: Mapped[list["OrderItem"]] = relationship(back_populates="product")

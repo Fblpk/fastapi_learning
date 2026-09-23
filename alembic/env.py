@@ -3,7 +3,7 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from app.models import product, user  # noqa
+from app.models import order, product, user  # noqa
 from app.models.product import Base
 
 from logging.config import fileConfig
