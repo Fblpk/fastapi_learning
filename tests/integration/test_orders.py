@@ -2,7 +2,7 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy import text
 
-from app.schemas.order import OrderCreate, OrderItemCreate
+from app.schemas.order import OrderCreate, OrderItemCreate, OrderResponse
 from app.services import orders_service as service
 from app.core.enums import OrderStatus
 
@@ -95,6 +95,16 @@ async def test_get_user_order(db, user, order):
 
     assert len(user_orders) == 1
     assert order in user_orders
+
+
+async def test_get_user_order_with_product(db, user, order, product):
+    """Схема заказа раскрывает товар (product.name): должен подтянуться product"""
+    db.expunge_all()  # вычищаем identity map: product теперь НЕ знаком сессии
+    user_orders = await service.get_user_orders(db, user)
+    response = [OrderResponse.model_validate(o) for o in user_orders]
+
+    assert len(response) == 1
+    assert response[0].items[0].product.name == product.name
 
 
 async def test_get_user_order_no_orders(db, user):

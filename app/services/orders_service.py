@@ -90,7 +90,9 @@ async def create_order(
 
 
 async def get_user_orders(db: AsyncSession, current_user: User):
-    stmt = select(Order).filter(Order.user_id == current_user.id).options(selectinload(Order.items))
+    stmt = select(Order).filter(Order.user_id == current_user.id).options(
+        selectinload(Order.items).selectinload(OrderItem.product)
+    )
     user_orders = (await db.execute(stmt)).scalars().all()
 
     return user_orders
